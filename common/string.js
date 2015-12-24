@@ -1,10 +1,14 @@
-exports.stringFormat = function() {
-	if (arguments.length == 0)
-		return null;
-	var str = arguments[0];
-	for (var i = 1; i < arguments.length; i++) {
-		var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
-		str = str.replace(re, arguments[i]);
+'use strict';
+
+exports.stringFormat = function(){
+
+	if (arguments.length == 0) {
+        return null;
+    }
+	let str = arguments[0];
+	for (let i = 1; i < arguments.length; i++) {
+        let re = new RegExp('\\{' + (i - 1) + '\\}', 'gm'); // g全局匹配，m匹配多行
+        str = str.replace(re, arguments[i]); // 将匹配的字符用后面的替换
 	}
 	return str;
 };

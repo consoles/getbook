@@ -1,26 +1,35 @@
+'use strict';
 //module by npm
-var async = require('async');
+const async = require('async');
 
 //module by 316523235@qq.com
-var config = require('./config.json');
-var configMrg = require('./handler/configMrg.js');
-var bookMrg = require('./handler/bookMrg.js');
+//const config = require('./config.json');
+const configMrg = require('./handler/configMrg.js');
+const bookMrg = require('./handler/bookMrg.js');
 
 //bookMrg.readBookList();
 //return;
 //新版，直接把小说名称放在robotBook.txt中就可以(小说间换行)
-if(config.isInit) {
-	bookMrg.readBookList();
-	bookMrg.startRobot();
+
+/*if(config.isInit) {
+	crawlBook();
 } else {
-	configMrg.init(function() { 
-		bookMrg.readBookList(); 
-		bookMrg.startRobot(); 
+	configMrg.init(function() {
+        crawlBook();
 	});
-}
+}*/
+
+let crawlBook = () => {
+    bookMrg.readBookList();
+    bookMrg.startRobot();
+};
+
+configMrg.init(function(){
+    crawlBook();
+});
 
 //旧版一次只下载一个
-return
+return;
 var search = require('./handler/search.js');
 
 var bookName = process.argv.splice(2)[0] || '';

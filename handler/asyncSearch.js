@@ -1,13 +1,19 @@
-var http = require('http');
-var cheerio = require('cheerio');
-var iconv = require('iconv-lite');
-var querystring = require('querystring');
-var fs = require('fs');
+'use strict';
+const http = require('http');
+const cheerio = require('cheerio');
+const iconv = require('iconv-lite');
+const querystring = require('querystring');
+const fs = require('fs');
 
 //module by 316523235@qq.com
-var config = require('./../config.json')
-var string = require('./../common/string.js');
+let config = require('./../config.json');
+const string = require('./../common/string.js');
 
+/**
+ * 得到图书的链接 http://www.fhxs.com/read/34/34891/
+ * @param robotBook
+ * @param callback
+ */
 exports.search = function(robotBook, callback) {
     if(config.isUseCache && existsBookIndex(robotBook.bookName)) {
     	var bookIndexUrl = getBookIndex(robotBook.bookName);
@@ -42,8 +48,7 @@ exports.search = function(robotBook, callback) {
 				for(var i = 0; i < books.length; i++) {
 					console.log('--' + books[i].attribs.title);
 				}
-				callback();
-				return;
+				return callback();
 			}
 			var attrs = realBook[0].attribs;
 			var bookIndexUrl = attrs.href;
@@ -56,7 +61,6 @@ exports.search = function(robotBook, callback) {
 		});
 	});
 };
-
 
 function robot_Index(robotBook, indexUrl, callback) {
 	http.get(indexUrl, function(res) {
@@ -72,7 +76,7 @@ function robot_Index(robotBook, indexUrl, callback) {
             }
 
 			var htmlDom = cheerio.load(str);
-			var arrUrls = [];
+			var arrUrls = []; // 存放每个章节的链接
 			var dlList = htmlDom('#list').find("a");
 			var startIndex = Math.min(robotBook.start, dlList.length);
 			var endIndex = Math.min(robotBook.start + robotBook.len, dlList.length);
@@ -90,8 +94,15 @@ function robot_Index(robotBook, indexUrl, callback) {
 				callback();
 		});
 	});
-};
+}
 
+/**
+ * 得到单个章节具体内容
+ * @param arrUrls
+ * @param realyRobotBook
+ * @param callback
+ * @constructor
+ */
 function GetContent(arrUrls, realyRobotBook, callback) {
 	if(arrUrls.length == 0) { console.log('robot ' + realyRobotBook.bookName + ' end\r\n'); callback(); return; } 
 
@@ -101,7 +112,6 @@ function GetContent(arrUrls, realyRobotBook, callback) {
     	GetContent(arrUrls, realyRobotBook, callback);
     	return;
 	}
-	
 
 	http.get(arrUrls[0].url, function(res) {
 		var body = [];
@@ -115,19 +125,22 @@ function GetContent(arrUrls, realyRobotBook, callback) {
                 str = iconv.decode(body, 'gbk');
             }
             var dom = cheerio.load(str);
+            // 得到每个章节的内容
             var content = dom('#TXT').text();
+            // 存入硬盘
         	createChapter(realyRobotBook.bookName, arrUrls[0].name, content);
-        	console.log('robot chapter OK: ' + arrUrls[0].name);
+        	console.info('robot chapter OK: ' + arrUrls[0].name);
         	//进行下一章
         	arrUrls = arrUrls.slice(1, arrUrls.length);
-    		setTimeout(function() { GetContent(arrUrls, realyRobotBook, callback) }, 1000 * config.nextMinite); 
+    		setTimeout(function() {
+                GetContent(arrUrls, realyRobotBook, callback)
+            }, 1000 * config.nextMinite);
 		});
 		res.on('err', function(err) {
 			console.log('robot ' + arrUrls[0].name + ' fail, err: ' + err);
 			if(realyRobotBook.errTimes > 3) {
 				callback();
-			}
-			else {
+			} else {
 				realyRobotBook.errTimes += 1;
         		setTimeout(function() { GetContent(arrUrls, realyRobotBook, callback) }, 1000 * config.nextMinite); 
 			}
@@ -135,7 +148,11 @@ function GetContent(arrUrls, realyRobotBook, callback) {
 	});
 }
 
-
+/**
+ * 创建图书目录，例如：txt/上仙，下面的一个index.txt保存了图书的url
+ * @param bookName
+ * @param indexUrl
+ */
 function createBookIndex(bookName, indexUrl) {
 	if(!fs.existsSync('./txt'))
     	fs.mkdirSync('./txt');

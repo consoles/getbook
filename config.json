@@ -1,8 +1,8 @@
 {
   "domain": "http://www.fhxs.com",
-  "searchId": "",
+  "searchId": "10414389360335061565",
   "searchUrl": "http://so.fhxs.com/cse/search?s={0}&q={1}",
   "isUseCache": true,
   "nextMinite": 5,
-  "isInit": false
+  "isInit": true
 }

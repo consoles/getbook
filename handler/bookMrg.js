@@ -1,9 +1,11 @@
-//module by npm
-var fs = require('fs');
-var async = require('async');
+'use strict';
 
-var asyncSearch = require('./asyncSearch.js');
-var robotBook = require('./../robotBook.json');
+//module by npm
+const fs = require('fs');
+const async = require('async');
+
+const asyncSearch = require('./asyncSearch.js');
+const robotBook = require('./../robotBook.json');
 
 var bookMrg = function() {
 	this.bookList = [];
